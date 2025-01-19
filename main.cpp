@@ -1,8 +1,10 @@
 #include <iostream>
 #include <iomanip>
 #include <array>
+#include <cstdlib>
 using std::cout;
 using std::cin;
+using std::cerr;
 using std::setw;
 using std::array;
 using std::setfill;
@@ -12,6 +14,7 @@ using std::showpos;
 using std::noshowpos;
 using std::internal;
 using std::fixed;
+using std::setprecision;
 
 /* READ AND WRITE OPERATION VALUES */
 const int read{10};
@@ -37,7 +40,7 @@ const int halt{43};
 /* MEMORY AND ACCUMULATOR */
 const size_t capacity{100};
 array<int, capacity> memory;
-int accumulator{0};
+double accumulator{0};
 
 /* FUNCTIONS */
 void readInInstructions(int& instructionCount);
@@ -45,14 +48,14 @@ void readInstructionsFromMemory(const int& instructionCounter);
 
 /* OPERATION FUNCTIONS */
 void readToMem(const int& operandLoc);
+void writeFromMem(const int& operandLoc);
 void loadFromMem(const int& operandLoc);
+void storeToMem(const int& operandLoc);
 void addToAccum(const int& operandLoc);
 void subtractFromAccum(const int& operandLoc);
 void divideAccumBy(const int& operandLoc);
 void multiplyAccumBy(const int& operandLoc);
 void branchTo(int& instructionLoc, const int& operandLoc);
-void branchNegTo(int& instructionLoc, const int& operandLoc);
-void branchZeroTo(int& instructionLoc, const int& operandLoc);
 void haltProgram(const int& instructionCounter, const int& instructionRegister, const int& operationCode, const int& operand);
 
 int main() {
@@ -115,41 +118,46 @@ void readInstructionsFromMemory(const int& instructionCounter) {
 
         switch (operationCode) {
             case read:
-                // cout << "Reading into memory address " << operand << '\n';
+                readToMem(operand);
                 break;
             case write:
-                // cout << "Writing from memory address " << operand << '\n';
+                writeFromMem(operand);
                 break;
             case load:
-                // cout << "Loading from memory address " << operand << '\n';
+                loadFromMem(operand);
                 break;
             case store:
-                // cout << "Storing into memory address " << operand << '\n';
+                storeToMem(operand);
                 break;
             case add:
-                // cout << "Adding to accumulator with value at memory address " << operand << '\n';
+                addToAccum(operand);
                 break;
             case subtract:
-                // cout << "Subtracting from accumulator with value at memory address " << operand << '\n';
+                subtractFromAccum(operand);
                 break;
             case divide:
-                // cout << "Dividing accumulator by value at memory address " << operand << '\n';
+                divideAccumBy(operand);
                 break;
             case multiply:
-                // cout << "Multiplying accumulator by value at memory address " << operand << '\n';
+                multiplyAccumBy(operand);
                 break;
             case branch:
-                // cout << "Branching to memory address " << operand << '\n';
+                branchTo(instr, operand);
                 break;
             case branchneg:
-                // cout << "Branching (negative) to memory address " << operand << '\n';
+                if (accumulator < 0) {
+                    branchTo(instr, operand);
+                }
                 break;
             case branchzero:
-                // cout << "Branching (zero) to memory address " << operand << '\n';
+                if (accumulator == 0) {
+                    branchTo(instr, operand);
+                }
                 break;
             case halt:
                 // cout << "Halting program execution\n";
-                haltProgram(instructionCounter, instructionRegister, operationCode, operand);
+                haltProgram(instr, instructionRegister, operationCode, operand);
+                return;
                 break;
             default:
                 // cout << "ERROR! Invlaid Operation Code! Terminating....\n";
@@ -160,46 +168,52 @@ void readInstructionsFromMemory(const int& instructionCounter) {
 }
 
 void readToMem(const int& operandLoc) {
+    cout << "? ";
+    cin >> memory[operandLoc];
+}
 
+void writeFromMem(const int& operandLoc) {
+    cout << "> " << memory[operandLoc] << "\n\n";
 }
 
 void loadFromMem(const int& operandLoc) {
+    accumulator = memory[operandLoc];
+}
 
+void storeToMem(const int& operandLoc) {
+    memory[operandLoc] = accumulator;
 }
 
 void addToAccum(const int& operandLoc) {
-
+    accumulator += memory[operandLoc];
 }
 
 void subtractFromAccum(const int& operandLoc) {
-
+    accumulator -= memory[operandLoc];
 }
 
 void divideAccumBy(const int& operandLoc) {
+    if (memory[operandLoc] == 0) {
+        cerr << "ERROR! Division by 0 not allowed. Terminating program...\n";
+        exit(1);
+    }
 
+    accumulator /= memory[operandLoc];
 }
 
 void multiplyAccumBy(const int& operandLoc) {
-
+    accumulator *= memory[operandLoc];
 }
 
 void branchTo(int& instructionLoc, const int& operandLoc) {
-
-}
-
-void branchNegTo(int& instructionLoc, const int& operandLoc) {
-
-}
-
-void branchZeroTo(int& instructionLoc, const int& operandLoc) {
-
+    instructionLoc = operandLoc;
 }
 
 void haltProgram(const int& instructionCounter, const int& instructionRegister, const int& operationCode, const int& operand) {
     cout << fixed;
     cout << "REGISTERS:\n";
     cout << setfill(' ') << setw(23) << left << "accumulator";
-    cout << setw(5) << setfill('0') << internal << showpos << accumulator;
+    cout << setw(5) << setfill('0') << internal << showpos << setprecision(0) << accumulator;
     cout << '\n';
 
     cout << setfill(' ') << setw(26) << left << "instructionCounter";
