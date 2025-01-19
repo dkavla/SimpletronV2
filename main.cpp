@@ -32,6 +32,9 @@ const int halt{43};
 const size_t capacity{100};
 array<int, capacity> memory;
 
+/* FUNCTIONS */
+void readInInstructions(int& instructionCount);
+
 
 int main() {
     cout << "*** Welcome to Simpletron! ***\n\n";
@@ -43,24 +46,63 @@ int main() {
     cout << "*** your program.                             ***\n\n";
 
     int instructionCounter{0};
-    int instruction{0};
     int operationCode{0};
     int operand{0};
 
+    
+    readInInstructions(instructionCounter);
+
+    
+    
+}
+
+void readInInstructions(int& instructionCount) {
+    /* READ IN THE INSTRUCTIONS TO MEMORY UNTIL SENTINEL VALUE ENTERED */
+
+    int instruction{0}; // used for entering instructions to memory only
+    int variables{0}; // keep track of how many variables are to be stored
+
     // read instructions to memory
     while (instruction != -99999) {
-        cout << setw(2) << setfill('0') << instructionCounter << " ? ";
+        cout << setw(2) << setfill('0') << instructionCount << " ? ";
         cin >> instruction;
 
-        // Execute if sentinel value is entered
+        // Exit if sentinel value is entered
         if (instruction == -99999) {
-            cout << "Terminating simulator....\n";
-            exit(0);
+            break;
         }
 
-        memory[instructionCounter] = instruction;
-        instructionCounter++;
-    }  
-    
-     
+        if (instruction == 0000) {
+            variables++;
+        }
+
+        memory[instructionCount] = instruction;
+        instructionCount++;
+    }
+
+    instructionCount -= variables; // adjust instruction count for the number of variable slots saved
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
