@@ -51,10 +51,10 @@ void readToMem(const int& operandLoc);
 void writeFromMem(const int& operandLoc);
 void loadFromMem(const int& operandLoc);
 void storeToMem(const int& operandLoc);
-void addToAccum(const int& operandLoc);
-void subtractFromAccum(const int& operandLoc);
-void divideAccumBy(const int& operandLoc);
-void multiplyAccumBy(const int& operandLoc);
+void addToAccum(const int& instructionCounter, const int& instructionRegister, const int& operationCode, const int& operandLoc);
+void subtractFromAccum(const int& instructionCounter, const int& instructionRegister, const int& operationCode, const int& operandLoc);
+void divideAccumBy(const int& instructionCounter, const int& instructionRegister, const int& operationCode, const int& operandLoc);
+void multiplyAccumBy(const int& instructionCounter, const int& instructionRegister, const int& operationCode, const int& operandLoc);
 void branchTo(int& instructionLoc, const int& operandLoc);
 void haltProgram(const int& instructionCounter, const int& instructionRegister, const int& operationCode, const int& operand);
 
@@ -95,6 +95,15 @@ void readInInstructions(int& instructionCount) {
             variables++;
         }
 
+        if ( (instruction < -9999 || instruction > 9999) && instruction != -99999) {
+            while (instruction < -9999 || instruction > 9999) {
+                cout << "\tYour instruction is out of the accepted range. Enter a different instruction.\n";
+                cout << "\t";
+                cout << setw(2) << setfill('0') << instructionCount << " ? ";
+                cin >> instruction;
+            }
+        }
+
         memory[instructionCount] = instruction;
         instructionCount++;
     }
@@ -130,16 +139,16 @@ void readInstructionsFromMemory(const int& instructionCounter) {
                 storeToMem(operand);
                 break;
             case add:
-                addToAccum(operand);
+                addToAccum(instr, instructionRegister, operationCode, operand);
                 break;
             case subtract:
-                subtractFromAccum(operand);
+                subtractFromAccum(instr, instructionRegister, operationCode, operand);
                 break;
             case divide:
-                divideAccumBy(operand);
+                divideAccumBy(instr, instructionRegister, operationCode, operand);
                 break;
             case multiply:
-                multiplyAccumBy(operand);
+                multiplyAccumBy(instr, instructionRegister, operationCode, operand);
                 break;
             case branch:
                 branchTo(instr, operand);
@@ -184,25 +193,64 @@ void storeToMem(const int& operandLoc) {
     memory[operandLoc] = accumulator;
 }
 
-void addToAccum(const int& operandLoc) {
+void addToAccum(const int& instructionCounter, const int& instructionRegister, const int& operationCode, const int& operandLoc) {
     accumulator += memory[operandLoc];
+
+    if (accumulator < -9999 || accumulator > 9999) {
+        cout << "*** Attempt to add a number resulted ***\n";
+        cout << "*** in a value that is too large or  ***\n";
+        cout << "*** too small.                       ***\n";
+        cout << "*** Simpletron execution abnormally  ***\n";
+        cout << "*** terminated.                      ***\n";
+        haltProgram(instructionCounter, instructionRegister, operationCode, operandLoc);
+        exit(1);
+    }
 }
 
-void subtractFromAccum(const int& operandLoc) {
+void subtractFromAccum(const int& instructionCounter, const int& instructionRegister, const int& operationCode, const int& operandLoc) {
     accumulator -= memory[operandLoc];
+
+    if (accumulator < -9999 || accumulator > 9999) {
+        cout << "*** Attempt to subtract a number     ***\n";
+        cout << "*** resulted in a value that is too  ***\n";
+        cout << "*** large or too small.              ***\n";
+        cout << "*** Simpletron execution abnormally  ***\n";
+        cout << "*** terminated.                      ***\n";
+        haltProgram(instructionCounter, instructionRegister, operationCode, operandLoc);
+        exit(1);
+    }
 }
 
-void divideAccumBy(const int& operandLoc) {
+void divideAccumBy(const int& instructionCounter, const int& instructionRegister, const int& operationCode, const int& operandLoc) {
     if (memory[operandLoc] == 0) {
-        cerr << "ERROR! Division by 0 not allowed. Terminating program...\n";
+        cout << "*** Attempt to divide by zero ***\n";
+        cout << "*** Simpletron execution abnormally terminated ***\n";
         exit(1);
     }
 
     accumulator /= memory[operandLoc];
+
+    if (accumulator < -9999 || accumulator > 9999) {
+        cout << "*** Attempt to divide a number ***\n";
+        cout << "*** resulted in a value that   ***\n";
+        cout << "*** is too large or too small. ***\n";
+        cout << "*** Simpletron execution abnormally terminated. ***\n";
+        haltProgram(instructionCounter, instructionRegister, operationCode, operandLoc);
+        exit(1);
+    }
 }
 
-void multiplyAccumBy(const int& operandLoc) {
+void multiplyAccumBy(const int& instructionCounter, const int& instructionRegister, const int& operationCode, const int& operandLoc) {
     accumulator *= memory[operandLoc];
+
+    if (accumulator < -9999 || accumulator > 9999) {
+        cout << "*** Attempt to multiply a number resulted ***\n";
+        cout << "*** in a number that is too large or too  ***\n";
+        cout << "*** small.                                ***\n";
+        cout << "*** Simpletron execution abnormally terminated. ***\n";
+        haltProgram(instructionCounter, instructionRegister, operationCode, operandLoc);
+        exit(1);
+    }
 }
 
 void branchTo(int& instructionLoc, const int& operandLoc) {
